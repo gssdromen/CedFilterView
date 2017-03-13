@@ -56,6 +56,13 @@ protocol CedFilterViewDelegate: class {
     func shouldExpandViewForSection(_ section: CedFilterSection) -> Bool
 
 
+    /// Section点击后打开几个TableView
+    ///
+    /// - Parameter section: 栏结构体
+    /// - Returns: 打开的数目
+    func numberOfTableToShow(_ section: CedFilterSection) -> Int
+
+
     /// 筛选是否有下一层
     ///
     /// - Parameter chain: 点击的路径
@@ -123,6 +130,8 @@ class CedFilterView: UIView {
     var currentSelection: CedFilterSectionSelection?
     /// 所有Section所有的选中
     var totalSelections = [Int: CedFilterSectionSelection]()
+    /// 本次操作中点中的路径
+    var currentSelectedChain: CedFilterChain?
 
     var sectionViewHeight: CGFloat = 0
 
@@ -146,11 +155,39 @@ class CedFilterView: UIView {
     }
 
     // MARK: - Private Method
+    fileprivate func handleSelectedForCurrentSelectedChain(node: CedFilterNode) {
+        node.prev = nil
+        node.next = nil
+        if let selectedChain = currentSelectedChain {
+            weak var pNode: CedFilterNode! = selectedChain.startNode
+            while pNode != nil {
+                if pNode.column == node.column {
+                    // 不是Chain的第一个点
+                    if pNode.prev != nil {
+                        pNode.prev!.next = node
+                    } else {
+                        let n = CedFilterNode(section: pNode.section, column: pNode.column, row: node.row, title: "", selected: false)
+                        currentSelectedChain = CedFilterChain(node: n)
+                    }
+                    return
+                }
+                pNode = pNode.next
+            }
+            if node.column == selectedChain.startNode.getLastNode().column + 1 {
+                selectedChain.startNode.getLastNode().connect(node)
+            }
+        } else {
+            currentSelectedChain = CedFilterChain(node: node)
+        }
+        return
+    }
+
     fileprivate func resetFotNextSelection() {
         for table in tableViewsArray {
             table.selectedNodes.removeAll()
         }
         currentSelection = nil
+        currentSelectedChain = nil
     }
 
     fileprivate func setSelectedNodeForTableView(tableIndex: Int, curNode: CedFilterNode) {
@@ -176,13 +213,11 @@ class CedFilterView: UIView {
             for i in (0 ..< curN.column).reversed() {
                 if i < tableViewsArray.count {
                     if tableViewsArray[i].selectedNodes.count > 0 {
-                        let node = tableViewsArray[i].selectedNodes[0]
-                        node.prev = nil
-                        node.next = nil
-
-                        pLastNode!.prev = node
-                        node.next = pLastNode
-                        pLastNode = node
+                        if let node = tableViewsArray[i].selectedNodes[0].copy() as? CedFilterNode {
+                            pLastNode!.prev = node
+                            node.next = pLastNode
+                            pLastNode = node
+                        }
                     }
                 }
             }
@@ -192,11 +227,12 @@ class CedFilterView: UIView {
             for i in 0 ..< tableViewsArray.count {
                 let table = tableViewsArray[i]
                 if table.selectedNodes.count > 0 {
-                    let node = tableViewsArray[i].selectedNodes[0]
-                    if i == 0 {
-                        chain = CedFilterChain(node: node)
-                    } else {
-                        chain.startNode.getLastNode().connect(node)
+                    if let node = tableViewsArray[i].selectedNodes[0].copy() as? CedFilterNode {
+                        if i == 0 {
+                            chain = CedFilterChain(node: node)
+                        } else {
+                            chain.startNode.getLastNode().connect(node)
+                        }
                     }
                 }
             }
@@ -425,6 +461,7 @@ extension CedFilterView: UITableViewDataSource, UITableViewDelegate {
         let tableViewNumber = tableView.tag - CedFilterView.kSectionOffset
         let node = CedFilterNode(section: currentSelection!.section, column: tableViewNumber, row: indexPath.row, title: "", selected: false)
         setSelectedNodeForTableView(tableIndex: tableViewNumber, curNode: node)
+        handleSelectedForCurrentSelectedChain(node: node)
         let curChain = getChainForNeedCell(curNode: node)
         
         if curChain != nil && currentSelection != nil {
@@ -436,20 +473,17 @@ extension CedFilterView: UITableViewDataSource, UITableViewDelegate {
                 var needsToCleanIndexes = [Int]()
                 for i in 0 ..< currentSelection!.chains.count {
                     let chain = currentSelection!.chains[i]
-                    if chain == curChain! {
+                    if chain == currentSelectedChain! {
                         needsToCleanIndexes.append(i)
                     }
                 }
                 if needsToCleanIndexes.count == 1 {
                     _ = currentSelection!.chains.remove(at: needsToCleanIndexes[0])
                 } else {
-                    currentSelection!.chains.append(curChain!)
+                    currentSelection!.chains.append(currentSelectedChain!)
                 }
                 tableView.reloadRows(at: [indexPath], with: UITableViewRowAnimation.none)
             } else {
-                currentSelection!.chains.removeAll()
-                currentSelection!.chains.append(curChain!)
-
                 let shouldGoNext = delegate!.shouldGoNextForRow(curChain!)
 
                 if shouldGoNext {
@@ -460,6 +494,8 @@ extension CedFilterView: UITableViewDataSource, UITableViewDelegate {
                         t.reloadData()
                     }
                 } else {
+                    currentSelection!.chains.removeAll()
+                    currentSelection!.chains.append(currentSelectedChain!)
                     totalSelections[currentSelection!.section] = currentSelection!
 
                     delegate!.finishSectionSelection(currentSelection, totalSelections: totalSelections)

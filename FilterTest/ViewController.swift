@@ -89,26 +89,57 @@ extension ViewController: CedFilterViewDataSource, CedFilterViewDelegate {
     }
 
     func cellForRowIn(tableView: UITableView, chain: CedFilterChain) -> UITableViewCell {
+        let allowMutli = isColumnAllowMultiForRow(chain)
+//        let shouldGoNext = shouldGoNextForRow(chain)
         var selectedFlag = false
         let (node, subItems) = getLastNodeAndSubItemsForChain(chain: chain)
 
-        if selectedFlag == false {
-            if filterView.totalSelections.keys.contains(node.section) {
-                if var selection = filterView.totalSelections[node.section] {
-                    for i in 0 ..< selection.chains.count {
-                        let c = selection.chains[i]
-
-                        if chain ~= c {
-                            selectedFlag = true
-                        }
-                    }
+        var isSelectedChainPartOfCurrentSelection = false
+        for c in filterView.currentSelection!.chains {
+            if filterView.currentSelectedChain != nil {
+                if c ~= filterView.currentSelectedChain! {
+                    isSelectedChainPartOfCurrentSelection = true
+                    break
                 }
             }
         }
 
-        if let c = selectedChain {
-            if c == chain {
-                selectedFlag = true
+        if allowMutli {
+            if let selection = filterView.currentSelection {
+                for m in 0 ..< selection.chains.count {
+                    let c = selection.chains[m]
+                    if c ~= chain {
+                        selectedFlag = true
+                    }
+                }
+            }
+        } else {
+            if filterView.currentSelectedChain == nil {
+                if let selection = filterView.currentSelection {
+                    for m in 0 ..< selection.chains.count {
+                        let c = selection.chains[m]
+                        if c ~= chain {
+                            selectedFlag = true
+                        }
+                    }
+                }
+            } else {
+                if isSelectedChainPartOfCurrentSelection {
+                    if let selection = filterView.currentSelection {
+                        for m in 0 ..< selection.chains.count {
+                            let c = selection.chains[m]
+                            if c ~= chain {
+                                selectedFlag = true
+                            }
+                        }
+                    }
+                } else {
+                    if filterView.currentSelectedChain != nil && allowMutli == false {
+                        if chain == filterView.currentSelectedChain! {
+                            selectedFlag = true
+                        }
+                    }
+                }
             }
         }
 
@@ -185,6 +216,10 @@ extension ViewController: CedFilterViewDataSource, CedFilterViewDelegate {
         return UITableViewCell()
     }
 
+    func numberOfTableToShow(_ section: CedFilterSection) -> Int {
+        return 3
+    }
+
     func shouldExpandViewForSection(_ section: CedFilterSection) -> Bool {
         guard section.section < viewModel.filterModels.count else {
             return false
@@ -258,6 +293,19 @@ extension ViewController: CedFilterViewDataSource, CedFilterViewDelegate {
     }
 
     func selectedAtRow(chain: CedFilterChain) {
+        if var selection = filterView.currentSelection {
+            let isColumnAllowMulti = isColumnAllowMultiForRow(chain)
+            var chainsIndexToRemove = [Int]()
+            for i in 0 ..< selection.chains.count {
+                let c = selection.chains[i]
+                if isColumnAllowMultiForRow(c) != isColumnAllowMulti {
+                    chainsIndexToRemove.append(i)
+                }
+            }
+            selection.chains.removeElementAtIndexes(indexes: chainsIndexToRemove)
+            filterView.currentSelection = selection
+        }
+
         selectedChain = chain.copy()
     }
 
@@ -298,7 +346,8 @@ extension ViewController: CedFilterViewDataSource, CedFilterViewDelegate {
         print(titleArray)
 
         // 开始设置SectionView的Title
-        if titleArray.count == 1 && titleArray[0] == "不限" {
+
+        if (filterArray.count == 0) || (titleArray.count == 1 && titleArray[0] == "不限") {
             let s = CedFilterSection(section: selection!.section)
             let t = titleForSection(s)
             filterView.sectionViewsArray[selection!.section].titleLabel.text = t

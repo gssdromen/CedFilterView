@@ -166,19 +166,28 @@ struct CedFilterSectionSelection {
 
     }
 
+    func contains(c: CedFilterChain) -> Bool {
+        for chain in chains {
+            if chain == c {
+                return true
+            }
+        }
+        return false
+    }
+
     var description: String {
         var str = ""
-//        for c in self.chains {
-//            str += c.description + "\n"
-//        }
+        for c in self.chains {
+            str += c.description + "\n"
+        }
         return str
     }
 
     var debugDescription: String {
         var str = ""
-//        for c in self.chains {
-//            str += c.description + "\n"
-//        }
+        for c in self.chains {
+            str += c.description + "\n"
+        }
         return str
     }
 

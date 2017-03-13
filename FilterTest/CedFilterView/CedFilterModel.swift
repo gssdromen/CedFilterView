@@ -15,9 +15,9 @@ class SectionView: UIView {
 
     // MARK: - Public Methods
     func setSectionViewSelect(flag: Bool) {
-//        let image = flag ? ImageUtils.imageNamed(name: "ic_houselist_filterView_open") : ImageUtils.imageNamed(name: "ic_houselist_filterView_expand")
+        let image = flag ? UIImage(named: "ic_houselist_filterView_open", in: Bundle(for: type(of: self)), compatibleWith: nil) : UIImage(named: "ic_houselist_filterView_expand", in: Bundle(for: type(of: self)), compatibleWith: nil)
 
-        icon.image = nil
+        icon.image = image
     }
 
     // MARK: - Views About
