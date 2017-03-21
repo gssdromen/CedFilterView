@@ -179,7 +179,6 @@ class CedFilterView: UIView {
         } else {
             currentSelectedChain = CedFilterChain(node: node)
         }
-        return
     }
 
     fileprivate func resetFotNextSelection() {
@@ -461,10 +460,11 @@ extension CedFilterView: UITableViewDataSource, UITableViewDelegate {
         let tableViewNumber = tableView.tag - CedFilterView.kSectionOffset
         let node = CedFilterNode(section: currentSelection!.section, column: tableViewNumber, row: indexPath.row, title: "", selected: false)
         setSelectedNodeForTableView(tableIndex: tableViewNumber, curNode: node)
-        handleSelectedForCurrentSelectedChain(node: node)
+//        handleSelectedForCurrentSelectedChain(node: node)
         let curChain = getChainForNeedCell(curNode: node)
-        
+
         if curChain != nil && currentSelection != nil {
+            currentSelectedChain = curChain!
             delegate!.selectedAtRow(chain: curChain!)
 
             let allowMulti = curChain == nil ? false : delegate!.isColumnAllowMultiForRow(curChain!)
@@ -498,6 +498,7 @@ extension CedFilterView: UITableViewDataSource, UITableViewDelegate {
                     currentSelection!.chains.append(currentSelectedChain!)
                     totalSelections[currentSelection!.section] = currentSelection!
 
+                    print(curChain!)
                     delegate!.finishSectionSelection(currentSelection, totalSelections: totalSelections)
                     resetFotNextSelection()
                     close()
