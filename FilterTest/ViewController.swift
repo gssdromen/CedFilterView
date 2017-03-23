@@ -114,7 +114,21 @@ extension ViewController: CedFilterViewDataSource, CedFilterViewDelegate {
                 }
             }
         } else {
-            if filterView.currentSelectedChain == nil {
+            if filterView.currentSelectedChain != nil {
+                if isSelectedChainPartOfCurrentSelection {
+                    if let selection = filterView.currentSelection {
+                        for m in 0 ..< selection.chains.count {
+                            let c = selection.chains[m]
+                            if c == chain {
+                                selectedFlag = true
+                            }
+                        }
+                    }
+                }
+                if chain == filterView.currentSelectedChain! {
+                    selectedFlag = true
+                }
+            } else {
                 if let selection = filterView.currentSelection {
                     for m in 0 ..< selection.chains.count {
                         let c = selection.chains[m]
@@ -123,24 +137,8 @@ extension ViewController: CedFilterViewDataSource, CedFilterViewDelegate {
                         }
                     }
                 }
-            } else {
-                if isSelectedChainPartOfCurrentSelection {
-                    if let selection = filterView.currentSelection {
-                        for m in 0 ..< selection.chains.count {
-                            let c = selection.chains[m]
-                            if c ~= chain {
-                                selectedFlag = true
-                            }
-                        }
-                    }
-                } else {
-                    if filterView.currentSelectedChain != nil && allowMutli == false {
-                        if chain == filterView.currentSelectedChain! {
-                            selectedFlag = true
-                        }
-                    }
-                }
             }
+
         }
 
         let filterModel = viewModel.filterModels[node.section]
