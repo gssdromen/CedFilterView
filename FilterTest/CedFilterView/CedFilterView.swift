@@ -115,7 +115,7 @@ class CedFilterView: UIView {
 //    }
 
     static let k1px = 1 / UIScreen.main.scale
-    static let kTableHeight: CGFloat = 390
+    static let kTableHeight: CGFloat = 290
     static let kTableWidthOffset: CGFloat = 80
     static let kConfirmViewHeight: CGFloat = 47
     static let kScreenHeight: CGFloat = UIScreen.main.bounds.height
@@ -434,8 +434,6 @@ extension CedFilterView: UITableViewDataSource, UITableViewDelegate {
         // 一个section中的第几个tableView
         let tableViewNumber = tableView.tag - CedFilterView.kSectionOffset
         let node = CedFilterNode(section: currentSelection!.section, column: tableViewNumber, row: indexPath.row, title: "", selected: true)
-
-        print(indexPath.row)
 
         let chain = getChainForNeedCell(curNode: node)
 
