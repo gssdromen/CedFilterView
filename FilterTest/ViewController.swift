@@ -267,10 +267,13 @@ extension ViewController: CedFilterViewDataSource, CedFilterViewDelegate {
         let (node, subItems) = getLastNodeAndSubItemsForChain(chain: chain)
 
         if subItems != nil {
-            let item = subItems![node.row]
-            if let flag = item.multiple {
-                return flag
-            }
+//            if node.row < subItems!.count {
+                let item = subItems![node.row]
+                if let flag = item.multiple {
+                    return flag
+                }
+//            }
+
         }
         return false
     }

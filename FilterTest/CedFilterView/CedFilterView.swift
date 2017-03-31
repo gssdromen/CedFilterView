@@ -115,7 +115,7 @@ class CedFilterView: UIView {
 //    }
 
     static let k1px = 1 / UIScreen.main.scale
-    static let kTableHeight: CGFloat = 290
+    static let kTableHeight: CGFloat = 390
     static let kTableWidthOffset: CGFloat = 80
     static let kConfirmViewHeight: CGFloat = 47
     static let kScreenHeight: CGFloat = UIScreen.main.bounds.height
@@ -251,6 +251,17 @@ class CedFilterView: UIView {
             } else {
                 currentSelection = CedFilterSectionSelection(section: section.section, chains: [])
             }
+
+            for i in 0 ..< tableViewsArray.count {
+                let tableView = tableViewsArray[i]
+                if i == 0 {
+                    tableView.isHidden = false
+                    tableView.reloadData()
+                } else {
+                    tableView.isHidden = true
+                }
+            }
+
             frame.size.height = totalHeight
             if delegate!.hasAllowMultiColumnInSection(section) {
                 confirmView.isHidden = false
@@ -267,15 +278,7 @@ class CedFilterView: UIView {
                     }
                 }
             }
-            for i in 0 ..< tableViewsArray.count {
-                let tableView = tableViewsArray[i]
-                if i == 0 {
-                    tableView.isHidden = false
-                    tableView.reloadData()
-                } else {
-                    tableView.isHidden = true
-                }
-            }
+
         } else {
             frame.size.height = sectionViewHeight
             currentSelection = nil
@@ -431,6 +434,8 @@ extension CedFilterView: UITableViewDataSource, UITableViewDelegate {
         // 一个section中的第几个tableView
         let tableViewNumber = tableView.tag - CedFilterView.kSectionOffset
         let node = CedFilterNode(section: currentSelection!.section, column: tableViewNumber, row: indexPath.row, title: "", selected: true)
+
+        print(indexPath.row)
 
         let chain = getChainForNeedCell(curNode: node)
 
