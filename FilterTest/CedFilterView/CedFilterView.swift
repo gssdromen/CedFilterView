@@ -252,22 +252,14 @@ class CedFilterView: UIView {
                 currentSelection = CedFilterSectionSelection(section: section.section, chains: [])
             }
 
-            for i in 0 ..< tableViewsArray.count {
-                let tableView = tableViewsArray[i]
-                if i == 0 {
-                    tableView.isHidden = false
-                    tableView.reloadData()
-                } else {
-                    tableView.isHidden = true
-                }
-            }
-
             frame.size.height = totalHeight
             if delegate!.hasAllowMultiColumnInSection(section) {
                 confirmView.isHidden = false
                 for table in tableViewsArray {
-                    if table.frame.size.height != CedFilterView.kTableHeight - CedFilterView.kConfirmViewHeight {
-                        table.frame.size.height = CedFilterView.kTableHeight - CedFilterView.kConfirmViewHeight
+                    if section.section != 3 {
+                        if table.frame.size.height != CedFilterView.kTableHeight - CedFilterView.kConfirmViewHeight {
+                            table.frame.size.height = CedFilterView.kTableHeight - CedFilterView.kConfirmViewHeight
+                        }
                     }
                 }
             } else {
@@ -279,6 +271,15 @@ class CedFilterView: UIView {
                 }
             }
 
+            for i in 0 ..< tableViewsArray.count {
+                let tableView = tableViewsArray[i]
+                if i == 0 {
+                    tableView.isHidden = false
+                    tableView.reloadData()
+                } else {
+                    tableView.isHidden = true
+                }
+            }
         } else {
             frame.size.height = sectionViewHeight
             currentSelection = nil
