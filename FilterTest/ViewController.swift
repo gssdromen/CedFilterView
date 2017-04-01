@@ -330,7 +330,8 @@ extension ViewController: CedFilterViewDataSource, CedFilterViewDelegate {
         var filterArray = [String]()
         var titleArray = [String]()
         for s in totalSelections.values {
-            for chain in s.chains {
+            for c in s.chains {
+                let chain = c.copy()
                 let (node, subItems) = getLastNodeAndSubItemsForChain(chain: chain)
 
                 if node.section < viewModel.filterModels.count {
