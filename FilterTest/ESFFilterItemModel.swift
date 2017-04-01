@@ -24,6 +24,21 @@ extension ESFFilterItemModel {
     }
 }
 
+extension ESFFilterItemModel {
+    func getDepth() -> Int {
+        var depth = 0
+        if subItems == nil {
+            return depth
+        }
+        for item in subItems! {
+            let height = item.getDepth()
+            depth = max(height, depth)
+        }
+
+        return depth + 1
+    }
+}
+
 class ESFFilterItemModel: NSObject, Mappable {
 //    var maxDepth = -1
 

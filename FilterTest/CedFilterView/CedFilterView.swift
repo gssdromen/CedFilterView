@@ -9,12 +9,10 @@
 import UIKit
 
 protocol CedFilterViewDataSource: class {
-
     /// 筛选框有几栏
     ///
     /// - Returns: 栏数
     func numberOfSection() -> Int
-
 
     /// 筛选框有每栏的标题
     ///
@@ -22,20 +20,17 @@ protocol CedFilterViewDataSource: class {
     /// - Returns: 栏的标题
     func titleForSection(_ section: CedFilterSection) -> String
 
-
     /// 筛选框有每栏的有几层
     ///
     /// - Parameter section: 栏结构体
     /// - Returns: 有几层
     func numberOfColumnForSection(_ section: CedFilterSection) -> Int
 
-
     /// 当前筛选层有几行
     ///
     /// - Parameter chain: 当前筛选的随意一个row
     /// - Returns: 行数
     func numberOfRowForChain(_ chain: CedFilterChain) -> Int
-
 
     /// 筛选栏Cell
     ///
@@ -48,13 +43,11 @@ protocol CedFilterViewDataSource: class {
 }
 
 protocol CedFilterViewDelegate: class {
-
     /// Section点击后是否打开
     ///
     /// - Parameter section: 栏结构体
-    /// - Returns: 是否打开
+    /// - Returns: 是否打开，true打开，false关闭
     func shouldExpandViewForSection(_ section: CedFilterSection) -> Bool
-
 
     /// Section点击后打开几个TableView
     ///
@@ -62,13 +55,11 @@ protocol CedFilterViewDelegate: class {
     /// - Returns: 打开的数目
     func numberOfTableToShow(_ section: CedFilterSection) -> Int
 
-
     /// 筛选是否有下一层
     ///
     /// - Parameter chain: 点击的路径
     /// - Returns: 是否有下一层
     func shouldGoNextForRow(_ chain: CedFilterChain) -> Bool
-
 
     /// 筛选当前层是否多选
     ///
@@ -76,20 +67,16 @@ protocol CedFilterViewDelegate: class {
     /// - Returns: 是否多选
     func isColumnAllowMultiForRow(_ chain: CedFilterChain) -> Bool
 
-
     /// 当前Section中是否有支持多选的Column，如有的话会显示确认按钮
     ///
     /// - Parameter section: 栏结构体
     /// - Returns: 是否
     func hasAllowMultiColumnInSection(_ section: CedFilterSection) -> Bool
 
-
-
     /// 有一行被点击
     ///
     /// - Parameter chain: 点击路径
     func selectedAtRow(chain: CedFilterChain)
-
 
     /// 完成一次完整路径的点击
     ///
@@ -245,6 +232,7 @@ class CedFilterView: UIView {
         let flag = delegate!.shouldExpandViewForSection(section)
 
         if flag {
+            // 打开筛选
             // 配置现在section选择的Selection
             if totalSelections.keys.contains(section.section) {
                 currentSelection = totalSelections[section.section]
@@ -252,28 +240,32 @@ class CedFilterView: UIView {
                 currentSelection = CedFilterSectionSelection(section: section.section, chains: [])
             }
 
+            let numberOfTableToShow = delegate!.numberOfTableToShow(section)
+            let allowMultiColumnInSection = delegate!.hasAllowMultiColumnInSection(section)
+
             frame.size.height = totalHeight
-            if delegate!.hasAllowMultiColumnInSection(section) {
+            if allowMultiColumnInSection {
                 confirmView.isHidden = false
                 for table in tableViewsArray {
-                    if section.section != 3 {
-                        if table.frame.size.height != CedFilterView.kTableHeight - CedFilterView.kConfirmViewHeight {
-                            table.frame.size.height = CedFilterView.kTableHeight - CedFilterView.kConfirmViewHeight
-                        }
-                    }
+                    table.contentInset.bottom = CedFilterView.kConfirmViewHeight
                 }
             } else {
                 confirmView.isHidden = true
                 for table in tableViewsArray {
-                    if table.frame.size.height != CedFilterView.kTableHeight {
-                        table.frame.size.height = CedFilterView.kTableHeight
-                    }
+                    table.contentInset.bottom = 0
                 }
             }
 
             for i in 0 ..< tableViewsArray.count {
                 let tableView = tableViewsArray[i]
-                if i == 0 {
+                if i < numberOfTableToShow {
+                    // 把原来的SelectedNode赋值回去
+                    if let chain = currentSelection!.chains.first {
+                        if let node = chain.getNodeAt(index: i) {
+                            tableView.selectedNodes = [node]
+                        }
+                    }
+
                     tableView.isHidden = false
                     tableView.reloadData()
                 } else {
@@ -281,6 +273,7 @@ class CedFilterView: UIView {
                 }
             }
         } else {
+            // 关闭筛选
             frame.size.height = sectionViewHeight
             currentSelection = nil
             close()
@@ -437,6 +430,7 @@ extension CedFilterView: UITableViewDataSource, UITableViewDelegate {
         let node = CedFilterNode(section: currentSelection!.section, column: tableViewNumber, row: indexPath.row, title: "", selected: true)
 
         let chain = getChainForNeedCell(curNode: node)
+        print("ask cell for " + chain!.description)
 
         let cell = dataSource!.cellForRowIn(tableView: tableView, chain: chain!)
 

@@ -119,6 +119,20 @@ struct CedFilterChain: CustomStringConvertible {
         n.row = node.row
     }
 
+    func getNodeAt(index: Int) -> CedFilterNode? {
+        weak var pNode = startNode
+        if index < 0 {
+            return nil
+        }
+        for _ in 0 ..< index {
+            pNode = pNode?.next
+            if pNode == nil {
+                return nil
+            }
+        }
+        return pNode
+    }
+
     func length() -> Int {
         var len = 1
 

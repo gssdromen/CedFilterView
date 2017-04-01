@@ -89,6 +89,10 @@ extension ViewController: CedFilterViewDataSource, CedFilterViewDelegate {
     }
 
     func cellForRowIn(tableView: UITableView, chain: CedFilterChain) -> UITableViewCell {
+        if chain.startNode.column != 0 {
+            return UITableViewCell()
+        }
+
         let allowMutli = isColumnAllowMultiForRow(chain)
 //        let shouldGoNext = shouldGoNextForRow(chain)
         var selectedFlag = false
@@ -215,7 +219,12 @@ extension ViewController: CedFilterViewDataSource, CedFilterViewDelegate {
     }
 
     func numberOfTableToShow(_ section: CedFilterSection) -> Int {
-        return 3
+        guard section.section < viewModel.filterModels.count else {
+            return 1
+        }
+        let filterModel = viewModel.filterModels[section.section]
+        let num = filterModel.getDepth()
+        return num
     }
 
     func shouldExpandViewForSection(_ section: CedFilterSection) -> Bool {
