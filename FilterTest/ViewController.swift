@@ -261,14 +261,16 @@ extension ViewController: CedFilterViewDataSource, CedFilterViewDelegate {
             }
         } else if node.column == 1 {
             if let subItemsLevelOne: [ESFFilterItemModel] = filterModel.subItems {
-                if let subItemsLevelTwo = subItemsLevelOne[node.prev!.row].subItems {
-                    let item = subItemsLevelTwo[node.row]
-                    return item.subItems != nil
+                if let prev = node.prev {
+                    if prev.row < subItemsLevelOne.count {
+                        if let subItemsLevelTwo = subItemsLevelOne[prev.row].subItems {
+                            let item = subItemsLevelTwo[node.row]
+                            return item.subItems != nil
+                        }
+                    }
                 }
-
             }
         }
-
         return false
     }
 

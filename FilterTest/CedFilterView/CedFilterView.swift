@@ -208,7 +208,6 @@ class CedFilterView: UIView {
                 }
             }
             chain = CedFilterChain(node: curN.getFirstNode())
-            return chain
         } else {
             for i in 0 ..< tableViewsArray.count {
                 let table = tableViewsArray[i]
@@ -222,8 +221,12 @@ class CedFilterView: UIView {
                     }
                 }
             }
-            return chain
         }
+
+        if chain != nil {
+            return chain!.startNode.column == 0 ? chain! : nil
+        }
+        return chain
     }
 
     func sectionClicked(_ gesture: UITapGestureRecognizer) {
@@ -445,9 +448,12 @@ extension CedFilterView: UITableViewDataSource, UITableViewDelegate {
         let tableViewNumber = tableView.tag - CedFilterView.kSectionOffset
         let node = CedFilterNode(section: currentSelection!.section, column: tableViewNumber, row: 0, title: "", selected: false)
 
-        let chain = getChainForNeedCell(curNode: node)
-        let num = dataSource!.numberOfRowForChain(chain!)
-        return num
+        if let chain = getChainForNeedCell(curNode: node) {
+            let num = dataSource!.numberOfRowForChain(chain)
+            return num
+        } else {
+            return 0
+        }
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
